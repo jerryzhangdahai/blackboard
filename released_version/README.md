@@ -22,5 +22,5 @@ released_version/
 └─ README.md
 ```
 
-如果你重新构建了前端，请将新的 `client/dist` 覆盖到这里的 `dist/`，重新提交即可。
+如果重新构建了前端，请将新的 `client/dist` 覆盖到这里的 `dist/`，重新提交即可。
 

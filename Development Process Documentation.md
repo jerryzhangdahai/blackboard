@@ -126,20 +126,3 @@
 
 ---
 
-### 六、各 README/说明文档的作用一览
-
-- `README.md`（根目录）  
-  - 面向“整体项目使用者 + 开发者”的总说明：项目介绍、目录结构、运行方式、前后端代码说明，以及 `client` 与 `pkgs/whiteboard-core` 之间的复用关系。
-
-- `DEV_CODE_ORIGIN.md`  
-  - 面向“想搞清楚代码来源和结构的人”：说明哪些文件是手写的、哪些来自模板或自动生成、哪些逻辑已抽到 `pkgs` 复用。
-
-- `debugfornotshare.md`  
-  - 面向“调试/回顾问题”的场景：记录协同问题的排查过程，便于以后出现类似问题时快速对照。
-
-- `pkgs/README.md`  
-  - 面向“希望把白板核心能力当库来用”的人：说明 `pkgs` 目录用途，当前已经有哪些包（`whiteboard-core`），以及里面暴露了什么能力。
-
-- `released_version/README.md`  
-  - 面向“只想本地跑部署版的人”：告诉用户下载 `released_version` 后，只需 `npm install && npm start`，然后访问 `http://localhost:4000/` 即可。
-
