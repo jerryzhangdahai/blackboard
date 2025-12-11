@@ -196,3 +196,70 @@
 - **解决方式**：
   - 开发阶段：习惯性在改完服务端后执行一次 `Get-Process node | Stop-Process`，再 `node server/index.js` 重新启动；
   - 或者使用 nodemon 等工具自动重启（当前项目为了简洁没有引入，可以按需添加）。
+
+---
+
+### 问题 6：Vite 无法解析 `pkgs` 目录的导入路径
+
+- **现象**：
+  - 将 `pkgs/whiteboard-core` 从项目根目录移到 `client/pkgs/whiteboard-core` 后，Vite 报错：
+    `Failed to resolve import "../../pkgs/whiteboard-core/src/drawUtils.ts" from "src/whiteboard/drawUtils.ts"`
+  - 即使路径看起来正确，Vite 仍然无法找到模块。
+
+- **排查过程**：
+  1. 确认文件确实存在于 `client/pkgs/whiteboard-core/src/drawUtils.ts`。
+  2. 检查相对路径：从 `client/src/whiteboard/drawUtils.ts` 到 `client/pkgs/whiteboard-core/src/drawUtils.ts`，应该是 `../../pkgs/...`。
+  3. 发现 Vite 默认只在 `client/` 目录内解析模块，`pkgs` 放在根目录时超出了 Vite 的解析范围。
+
+- **解决方案**：
+  - 将 `pkgs` 目录移到 `client/` 目录下，路径改为 `../pkgs/...`（从 `client/src/whiteboard/` 向上两级到 `client/`，再进入 `pkgs/`）。
+  - 将 `export * from ...` 改为显式导出，提高可靠性：
+    ```ts
+    // types.ts
+    export type { Tool, Point, LineStyle, DrawOp, ... } from '../../pkgs/whiteboard-core/src/types';
+    
+    // drawUtils.ts
+    export { drawOperations, translateOp, hitTest } from '../../pkgs/whiteboard-core/src/drawUtils';
+    ```
+
+> 经验：Vite 的模块解析范围默认限制在项目根目录（对于 `client/` 子项目，就是 `client/` 目录内）。如果需要跨目录引用，要么把代码移到 Vite 能解析的范围内，要么配置 `vite.config.ts` 的 `resolve.alias`。
+
+---
+
+### 问题 7：WebSocket 在连接建立前尝试发送数据导致错误
+
+- **现象**：
+  - 浏览器控制台报错：`Failed to execute 'send' on 'WebSocket': Still in CONNECTING state.`
+  - 画图时无法发送数据，导致协同失效。
+
+- **排查过程**：
+  1. 检查 `sendOp` 函数，发现使用了 `wsRef.current?.send(...)`，但没有检查 WebSocket 状态。
+  2. WebSocket 连接是异步的，在 `CONNECTING` 状态时调用 `send()` 会抛出异常。
+
+- **解决方案**：
+  - 在 `sendOp` 和 `broadcastReset` 函数中添加状态检查：
+    ```ts
+    const sendOp = (op: DrawOp) => {
+      const ws = wsRef.current;
+      if (!ws) {
+        console.warn('WebSocket not initialized');
+        return;
+      }
+      if (ws.readyState !== WebSocket.OPEN) {
+        console.warn(`WebSocket not ready, state: ${ws.readyState}`);
+        return;
+      }
+      ws.send(JSON.stringify({ type: 'op', payload: op }));
+    };
+  ```
+  - 添加 WebSocket 连接日志，便于调试：
+    ```ts
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ```
+
+> 经验：使用 WebSocket 时，一定要检查 `readyState` 是否为 `WebSocket.OPEN`（值为 1）再发送数据。状态值：0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED。

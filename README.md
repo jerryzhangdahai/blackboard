@@ -50,12 +50,12 @@
 
 > **关于 `client` 与 `pkgs` 的关系**  
 > - `client/` 是**完整的前端应用**：包含页面结构（`App`、`WhiteboardPage`）、交互逻辑（`Whiteboard`）、样式、Vite/TS 配置等。  
-> - `pkgs/whiteboard-core` 是从 `client` 中抽出来的**可复用底层库**：  
->   - `pkgs/whiteboard-core/src/types.ts`：集中定义白板的所有类型，包含 `Point`、`Tool`、`LineStyle`、以及各种 `DrawOp`（线条、矩形、圆形、三角形、菱形、箭头、文本等）。  
->   - `pkgs/whiteboard-core/src/drawUtils.ts`：封装 Canvas 层的核心算法，包括：按 `DrawOp[]` 重绘画布、图形平移、命中测试（点击/橡皮擦）。  
+> - `client/pkgs/whiteboard-core` 是从 `client` 中抽出来的**可复用底层库**（位于 `client` 目录下，便于 Vite 解析）：  
+>   - `client/pkgs/whiteboard-core/src/types.ts`：集中定义白板的所有类型，包含 `Point`、`Tool`、`LineStyle`、以及各种 `DrawOp`（线条、矩形、圆形、三角形、菱形、箭头、文本等）。  
+>   - `client/pkgs/whiteboard-core/src/drawUtils.ts`：封装 Canvas 层的核心算法，包括：按 `DrawOp[]` 重绘画布、图形平移、命中测试（点击/橡皮擦）。  
 > - `client/src/whiteboard/types.ts` 和 `client/src/whiteboard/drawUtils.ts` 不再自己实现逻辑，而是通过  
->   `export * from '../../pkgs/whiteboard-core/src/...';` 的方式**直接复用** `whiteboard-core` 中的实现。  
-> - 将来如果你在另一个项目中也想使用同一套白板数据结构和绘制逻辑，只需拷贝/引用 `pkgs/whiteboard-core`，`client` 可以视为这个仓库专属的“示例应用”。
+>   `export type { ... } from '../../pkgs/whiteboard-core/src/types';` 和 `export { ... } from '../../pkgs/whiteboard-core/src/drawUtils';` 的方式**显式复用** `whiteboard-core` 中的实现。  
+> - 将来如果你在另一个项目中也想使用同一套白板数据结构和绘制逻辑，只需拷贝/引用 `client/pkgs/whiteboard-core`，`client` 可以视为这个仓库专属的“示例应用”。
 
 ### 项目结构总览
 

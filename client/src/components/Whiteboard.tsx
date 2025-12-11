@@ -76,7 +76,10 @@ export function Whiteboard({ boardId }: WhiteboardProps) {
     setSelectedIndex(nextSelected);
     setOps(next);
     redraw(next, nextSelected);
-    wsRef.current?.send(JSON.stringify({ type: 'reset', ops: next }));
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'reset', ops: next }));
+    }
   };
 
   const handleUndo = useCallback(() => {
@@ -155,6 +158,14 @@ export function Whiteboard({ boardId }: WhiteboardProps) {
     const ws = new WebSocket(`${WS_URL}?boardId=${boardId}`);
     wsRef.current = ws;
 
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
     ws.onmessage = (event) => {
       const msg: ServerMessage = JSON.parse(event.data);
       if (msg.type === 'init') {
@@ -200,7 +211,16 @@ export function Whiteboard({ boardId }: WhiteboardProps) {
 
   // 发送单个操作
   const sendOp = (op: DrawOp) => {
-    wsRef.current?.send(JSON.stringify({ type: 'op', payload: op }));
+    const ws = wsRef.current;
+    if (!ws) {
+      console.warn('WebSocket not initialized');
+      return;
+    }
+    if (ws.readyState !== WebSocket.OPEN) {
+      console.warn(`WebSocket not ready, state: ${ws.readyState} (0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED)`);
+      return;
+    }
+    ws.send(JSON.stringify({ type: 'op', payload: op }));
   };
 
   const canvasToPoint = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>): Point => {
