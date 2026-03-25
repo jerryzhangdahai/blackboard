@@ -41,8 +41,6 @@
 - `pkgs/README.md`  
   - 面向“希望把白板核心能力当库来用”的人：说明 `pkgs` 目录用途，当前已经有哪些包（`whiteboard-core`），以及里面暴露了什么能力。
 
-- `released_version/README.md`  
-  - 面向“只想本地跑部署版的人”：告诉用户下载 `released_version` 后，只需 `npm install && npm start`，然后访问 `http://localhost:4000/` 即可。
 
 ## 协同白板项目说明
 
@@ -194,7 +192,7 @@
       - `Ctrl+Y` 或 `Ctrl+Shift+Z`：重做。
   - 实时同步：
     - 开发环境：`WS_URL` 为 `ws://${window.location.hostname}:4000/ws`。
-    - 部署版：`WS_URL` 为 `ws://${window.location.host}/ws`，与 `released_version/server.js` 对应。
+    - 部署版：`WS_URL` 为 `ws://${window.location.host}/ws`，与 `server/index.js` 对应。
     - 处理消息：
       - `init`：首次连接拉取完整 `ops`，做一次全量重放。
       - `op`：由本地或其他客户端新增的单条操作（绘制图形）。
